@@ -60,19 +60,20 @@ function App() {
     setCartItems(prev => prev.filter(item => item.id !== id))
   }
 
-  const onAddToFavourite = async favouriteItem => {
+  const onAddToFavourite = async (obj) => {
     try {
-      if (favourites.find(item => item.id === favouriteItem.id)) {
-        axios.delete(`https://610074bfbca46600171cf8eb.mockapi.io/favourites/${favouriteItem.id}`)
+      if (favourites.find((favObj) => Number(favObj.id) === Number(obj.id))) {
+        axios.delete(`https://610074bfbca46600171cf8eb.mockapi.io/favourites/${obj.id}`);
+        setFavourites((prev) => prev.filter((item) => Number(item.id) !== Number(obj.id)));
       } else {
-        const { data } = await axios.post('https://610074bfbca46600171cf8eb.mockapi.io/favourites', favouriteItem)
-        setFavourites(prev => [...prev, data])
+        const { data } = await axios.post('https://610074bfbca46600171cf8eb.mockapi.io/favourites/', obj);
+        setFavourites((prev) => [...prev, data]);
       }
     } catch (error) {
-      alert('Не удалось добавить товар в избранное')
-      console.log(error);
+      alert('Не удалось добавить в фавориты');
+      console.error(error);
     }
-  }
+  };
 
   const onChangeSearchInput = (event) => {
     const target = event.target
@@ -83,8 +84,19 @@ function App() {
     setSearchValue('')
   }
 
+  const isItemAdded = (id) => {
+    return cartItems.some(obj => Number(obj.parentId) === Number(id))
+  }
+
+
   return (
-    <AppContext.Provider value={{ items, cartItems, favourites }}>
+    <AppContext.Provider value={{
+      items,
+      cartItems,
+      favourites,
+      isItemAdded,
+      onAddToFavourite,
+    }}>
       <div className="wrapper clear">
         {
           cartOpened
@@ -115,11 +127,7 @@ function App() {
         </Route>
 
         <Route exact path="/favourites">
-          <Favourites
-            items={favourites}
-            onAddToCart={onAddToCart}
-            onAddToFavourite={onAddToFavourite}
-          />
+          <Favourites />
         </Route>
 
       </div>

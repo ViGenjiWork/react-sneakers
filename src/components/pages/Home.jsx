@@ -9,7 +9,6 @@ const Home = ({
     onChangeSearchInput,
     onAddToCart,
     onAddToFavourite,
-    cartItems,
     isLoading
 }) => {
 
@@ -21,9 +20,8 @@ const Home = ({
         return (isLoading ? [...Array(8)] : filteredItems).map((item, index) => (
             <Card
                 key={index}
-                onPlus={() => onAddToCart(item)}
-                onFavourite={() => onAddToFavourite(item)}
-                added={cartItems.some(obj => Number(obj.id) === Number(item.id))}
+                onPlus={(obj) => onAddToCart(obj)}
+                onFavourite={(obj) => onAddToFavourite(obj)}
                 loading={isLoading}
                 {...item}
                 
