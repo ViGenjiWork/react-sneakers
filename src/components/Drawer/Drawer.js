@@ -1,10 +1,43 @@
-import React from 'react'
+import React, { useState } from 'react'
 import styles from './Drawer.module.scss'
+import Info from './../Info/Info';
+import axios from 'axios';
+import { useCart } from '../hooks/useCart';
 
-const Drawer = ({ onClose, items = [], onRemove }) => {
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+const Drawer = ({ onClose, items = [], onRemove, opened }) => {
+
+    const { cartItems, setCartItems, totalPrice } = useCart()
+    const [orderId, setOrderId] = useState(null)
+    const [isOrderComplete, setIsOrderComplete] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
+
+
+    const onClickOrder = async () => {
+        try {
+            setIsLoading(true)
+            const { data } = await axios.post('https://610074bfbca46600171cf8eb.mockapi.io/orders/', { items: cartItems })
+
+            setOrderId(data.id)
+            setIsOrderComplete(true)
+            setCartItems([])
+
+            for (let i = 0; i < cartItems.length; i++) {
+                const item = cartItems[i];
+                await axios.delete('https://610074bfbca46600171cf8eb.mockapi.io/cart/' + item.id)
+                await delay(1000)
+            }
+
+        } catch (error) {
+            alert('При оформлении заказа произошла ошибка ;(')
+            console.log(error);
+        }
+        setIsLoading(false)
+    }
 
     return (
-        <div className={styles.overlay} onClick={(event) => {
+        <div className={`${styles.overlay} ${opened ? styles.overlayVisible : ''}`} onClick={(event) => {
             if (event.target.classList.contains(styles.overlay)) {
                 onClose()
             }
@@ -14,7 +47,8 @@ const Drawer = ({ onClose, items = [], onRemove }) => {
 
                 {items.length > 0
 
-                    ? <React.Fragment>
+                    ?
+                    <React.Fragment>
                         <div className={styles.items}>
                             {
                                 items.map(obj => (
@@ -45,28 +79,24 @@ const Drawer = ({ onClose, items = [], onRemove }) => {
                                 <li className="d-flex">
                                     <span>Итого:</span>
                                     <div></div>
-                                    <b> 21 498 руб. </b>
+                                    <b> {totalPrice} </b>
                                 </li>
                                 <li className="d-flex">
                                     <span>Налог 5%: </span>
                                     <div></div>
-                                    <b>1074 руб.</b>
+                                    <b>{Math.round(totalPrice * 0.05)} руб.</b>
                                 </li>
                             </ul>
-                            <button className={styles.greenButton}>Оформить заказ <img src="./img/arrow.svg" alt="arrrow" /></button>
+                            <button disabled={isLoading} onClick={onClickOrder} className={styles.greenButton}>Оформить заказ <img src="./img/arrow.svg" alt="arrrow" /></button>
                         </div>
 
                     </React.Fragment>
-
-                    : <div className={styles.cartEmpty}>
-                        <img width={120} height={120} className='mb-20' src="./img/cartEmpty.png" alt="cartEmpty" />
-                        <h2>Корзина пустая</h2>
-                        <p className="opacity-6">Добавьте хотя бы одну пару кроссовок, чтобы сделать заказ.</p>
-                        <button onClick={onClose} className={styles.greenButton}>
-                            <img src="./img/arrow.svg" alt="arrow" />
-                            Вернуться назад
-                        </button>
-                    </div>
+                    :
+                    <Info
+                        image={isOrderComplete ? './img/complete-order.png' : './img/cartEmpty.png'}
+                        title={isOrderComplete ? "Заказ оформлен" : "Корзина пустая"}
+                        description={isOrderComplete ? `Ваш заказ #${orderId} скоро будет передан курьерской доставке` : 'Добавьте хотя бы одну пару кроссовок, чтобы сделать заказ.'}
+                    />
                 }
             </div>
         </div>
@@ -74,3 +104,4 @@ const Drawer = ({ onClose, items = [], onRemove }) => {
 }
 
 export default Drawer
+// ТАЙМКОД 29:25

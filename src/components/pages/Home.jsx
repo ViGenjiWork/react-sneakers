@@ -24,7 +24,6 @@ const Home = ({
                 onFavourite={(obj) => onAddToFavourite(obj)}
                 loading={isLoading}
                 {...item}
-                
             />
         ))
     }

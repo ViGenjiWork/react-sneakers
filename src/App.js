@@ -7,6 +7,7 @@ import axios from 'axios';
 import Home from './components/pages/Home';
 import Favourites from './components/pages/Favourites';
 import AppContext from './context';
+import { Orders } from './components/pages/Orders';
 
 function App() {
 
@@ -19,7 +20,7 @@ function App() {
 
   useEffect(() => {
 
-    async function fetchData() {
+    (async () => {
       try {
         const [cartResponse, favouritesResponse, itemResponse] = await Promise.all([
           axios.get('https://610074bfbca46600171cf8eb.mockapi.io/cart'),
@@ -35,9 +36,7 @@ function App() {
         alert('Ошибка при запросе данных')
         console.log(error)
       }
-    }
-
-    fetchData()
+    })()
 
   }, [])
 
@@ -66,7 +65,7 @@ function App() {
         axios.delete(`https://610074bfbca46600171cf8eb.mockapi.io/favourites/${obj.id}`);
         setFavourites((prev) => prev.filter((item) => Number(item.id) !== Number(obj.id)));
       } else {
-        const { data } = await axios.post('https://610074bfbca46600171cf8eb.mockapi.io/favourites/', obj);
+        const { data } = await axios.post('https://610074bfbca46600171cf8eb.mockapi.io/favourites', obj);
         setFavourites((prev) => [...prev, data]);
       }
     } catch (error) {
@@ -88,7 +87,6 @@ function App() {
     return cartItems.some(obj => Number(obj.parentId) === Number(id))
   }
 
-
   return (
     <AppContext.Provider value={{
       items,
@@ -96,18 +94,17 @@ function App() {
       favourites,
       isItemAdded,
       onAddToFavourite,
+      setCartOpened,
+      setCartItems,
+      onAddToCart
     }}>
       <div className="wrapper clear">
-        {
-          cartOpened
-            ? <Drawer
-              onClose={() => setCartOpened(!cartOpened)}
-              onRemove={onRemoveCartItem}
-              items={cartItems}
-            />
-            : null
-        }
-
+        < Drawer
+          onClose={() => setCartOpened(!cartOpened)}
+          onRemove={onRemoveCartItem}
+          items={cartItems}
+          opened={cartOpened}
+        />
         <Header
           onClickCart={() => setCartOpened(!cartOpened)}
         />
@@ -128,6 +125,10 @@ function App() {
 
         <Route exact path="/favourites">
           <Favourites />
+        </Route>
+
+        <Route exact path="/orders">
+          <Orders />
         </Route>
 
       </div>
